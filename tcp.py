@@ -26,11 +26,8 @@ class Flag(Enum):
 
 class Nodo(object):
     def __init__(self, estado_inicial=None):
-        if estado_inicial is None:
-            estado_inicial = Estado.CLOSED
-
         # Variable que guarda el estado del nodo, inicialmente estan cerrados
-        self.estado = estado_inicial
+        self.estado = estado_inicial if estado_inicial else Estado.CLOSED
 
         # Variable que guarda a que nodo esta conectado este
         self.conectado = None
@@ -41,14 +38,15 @@ class Nodo(object):
 
     # Esta funcion manda un paquete TCP, con flags, a otro Nodo
     def send(self, destinatario, flags):
-        ### Completar
-        pass
+        destinatario.receive(self, flags)
+        self.estado = Estado.SYN_SENT
 
     # Esta funcion se ejecuta cuando un nodo recibe un paquete TCP.
     # Dependiendo que flags tenga el paquete, va a hacer una cosa u otra
     def receive(self, emisor, flags):
-        ### Completar
-        pass
+        if flags[0] == Flag.SYN:
+            # TODO Checkear estado actual
+            self.estado = Estado.SYN_RCVD
 
     # Hace que este nodo se conecte con el nodo 'destinatario'
     # Esto significa pasar de estado CLOSED a ESTABLISHED,

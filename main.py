@@ -18,7 +18,7 @@ def test2():
     # Test: El estado SYN_SENT pasa a ESTABLISHED si se le envia un SYN + ACK
     cliente = Nodo(Estado.SYN_SENT)
     servidor = Nodo(Estado.LISTEN)
-    servidor.send(cliente, [Flag.SYN, Flag.ACK])
+    cliente.send(servidor, [Flag.SYN, Flag.ACK])
 
     # Se fija que al enviar los flags SYN + ACK el cliente queda en estado ESTABLISHED
     assert(cliente.estado == Estado.ESTABLISHED), f'El cliente no cambio a estado ESTABLISHED'
