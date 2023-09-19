@@ -30,7 +30,7 @@ class Nodo(object):
 			estado_inicial = Estado.CLOSED
 
 		# Variable que guarda el estado del nodo, inicialmente estan cerrados
-		self.stado = estado_inicial
+		self.estado = estado_inicial
 
 		# Variable que guarda a que nodo esta conectado este
 		self.conectado = None
