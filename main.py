@@ -11,14 +11,14 @@ def test1():
     servidor = Nodo(Estado.LISTEN)
     cliente.send(servidor, [Flag.SYN])
 
-    # Se fija que al enviar el flag SYN a un nodo en estado LSITEN, este cambie a estado SYN_RCVD
+    # Se fija que al enviar el flag SYN a un nodo en estado LISTEN, este cambie a estado SYN_RCVD
     assert(servidor.estado == Estado.SYN_RCVD), f'El servidor no cambio a estado SYN_RCVD'
 
 def test2():
     # Test: El estado SYN_SENT pasa a ESTABLISHED si se le envia un SYN + ACK
     cliente = Nodo(Estado.SYN_SENT)
     servidor = Nodo(Estado.LISTEN)
-    cliente.send(servidor, [Flag.SYN, Flag.ACK])
+    servidor.send(cliente, [Flag.SYN, Flag.ACK])
 
     # Se fija que al enviar los flags SYN + ACK el cliente queda en estado ESTABLISHED
     assert(cliente.estado == Estado.ESTABLISHED), f'El cliente no cambio a estado ESTABLISHED'
