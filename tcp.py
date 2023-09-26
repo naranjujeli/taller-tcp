@@ -8,7 +8,7 @@ class Estado(Enum):
     ESTABLISHED = 5
     FIN_WAIT_1 = 6
     FIN_WAIT_2 = 7
-    CLISING = 8
+    CLOSING = 8
     TIME_WAIT = 9
     CLOSE_WAIT = 10
     LAST_ACK = 11
@@ -40,24 +40,30 @@ class Nodo(object):
     def send(self, destinatario, flags):
         destinatario.receive(self, flags)
 
-        enviando_primera_syn = self.estado == Estado.CLOSED and Flag.SYN in flags
-        enviando_syn_ack = self.estado == Estado.SYN_RCVD and (Flag.SYN in flags and Flag.ACK in flags)
+        # enviando_primera_syn = self.estado == Estado.CLOSED and Flag.SYN in flags
+        # enviando_syn_ack = self.estado == Estado.SYN_RCVD and (Flag.SYN in flags and Flag.ACK in flags)
         
-        if enviando_primera_syn:
-            self.estado = Estado.SYN_SENT
-        elif enviando_syn_ack:
-            self.estado = Estado.SYN_SENT
+        # if enviando_primera_syn:
+        #     self.estado = Estado.SYN_SENT
+        # elif enviando_syn_ack:
+        #     self.estado = Estado.SYN_SENT
 
     # Esta funcion se ejecuta cuando un nodo recibe un paquete TCP.
     # Dependiendo que flags tenga el paquete, va a hacer una cosa u otra
     def receive(self, emisor, flags):
         recibiendo_primera_syn = self.estado == Estado.LISTEN and Flag.SYN in flags
         recibiendo_syn_ack = self.estado == Estado.SYN_SENT and (Flag.SYN in flags and Flag.ACK in flags)
+        recibiendo_primera_fin = self.estado == Estado.ESTABLISHED and Flag.FIN in flags
+        recibiendo_fin_ack = self.estado == Estado.FIN_WAIT_1 and Flag.FIN in flags
+        recibiendo_ultima_ack = self.estado == Estado.
         if recibiendo_primera_syn:
             self.estado = Estado.SYN_RCVD
-            self.send(emisor, [Flag.ACK, Flag.SYN])
         elif recibiendo_syn_ack:
             self.estado = Estado.ESTABLISHED
+        elif recibiendo_primera_fin:
+            self.estado = Estado.CLOSING
+        elif recibiendo_fin_ack:
+            self.estado = Estado.
 
     # Hace que este nodo se conecte con el nodo 'destinatario'
     # Esto significa pasar de estado CLOSED a ESTABLISHED,
@@ -65,9 +71,13 @@ class Nodo(object):
     def handshake(self, destinatario):
         self.estado = Estado.CLOSED
         self.send(destinatario, [Flag.SYN])
+        destinatario.send(self, [Flag.SYN, Flag.ACK])
+        self.send(destinatario, [Flag.ACK])
 
     # Hace que este nodo se desconecte del nodo conectado
     # Esto significa pasar de estado ESTABLISHED a CLOSED,
     # pasando por todos los pasos del protocolo TCP. 
     def close(self, destinatario):
         self.send(destinatario, [Flag.FIN])
+        destinatario.send(self, [Flag.FIN, Flag.ACK])
+        self.send(destinatario, [Flag.ACK])
