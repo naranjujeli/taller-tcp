@@ -49,7 +49,7 @@ def test5():
     cliente.send(servidor, [Flag.FIN])
     
     # Se fija que al enviar el flag FIN el cliente queda en estado CLOSING
-    assert(cliente.estado == Estado.CLOSING), f'El cliente no cambio a estado CLOSING'
+    assert(servidor.estado == Estado.CLOSING), f'El cliente no cambio a estado CLOSING'
 
 def test6():
     cliente = Nodo(Estado.ESTABLISHED)
@@ -77,11 +77,23 @@ def test8():
     # Se fija que al enviar el flag FIN el servidor queda en estado CLOSED
     assert(servidor.estado == Estado.CLOSED), f'El servidor no cambio a estado CLOSED'
 
+def test_adicional_1():
+    cliente = Nodo()
+    servidor = Nodo(Estado.LISTEN)
+    cliente.handshake(servidor)
+
+    assert(cliente.estado == Estado.ESTABLISHED and servidor.estado == Estado.ESTABLISHED), 'El "handshake" no fue llevado a cabo correctamente'
+
+def test_adicional_2():
+    cliente = Nodo(Estado.ESTABLISHED)
+    servidor = Nodo(Estado.ESTABLISHED)
+    cliente.close(servidor)
+
+    assert(cliente.estado == Estado.CLOSED and servidor.estado == Estado.CLOSED), 'El proceso "close" no fue llevado a cabo correctamente'
+
 def test():
     ### Invitacion a crear mas tests...
     pass
-
-
 
 def correr_tests(*argv):
     for i, test in enumerate(argv):
@@ -100,5 +112,7 @@ if __name__ == '__main__':
                 test5,
                 test6,
                 test7,
-                test8
+                test8,
+                test_adicional_1,
+                test_adicional_2
                 )

@@ -51,24 +51,56 @@ class Nodo(object):
     # Esta funcion se ejecuta cuando un nodo recibe un paquete TCP.
     # Dependiendo que flags tenga el paquete, va a hacer una cosa u otra
     def receive(self, emisor, flags):
-        if self.estado == Estado.CLOSED: pass
-        elif self.estado == Estado.LISTEN: 
-            if Flag.SYN in flags:
+        syn_recibido = Flag.SYN in flags
+        ack_recibido = Flag.ACK in flags
+        fin_recibido = Flag.FIN in flags
+        if self.estado == Estado.LISTEN: 
+            if syn_recibido:
+                # LISTEN recibe SYN
                 self.estado = Estado.SYN_RCVD
-        elif self.estado == Estado.SYN_SENT: pass
-        elif self.estado == Estado.SYN_RCVD: pass
-        elif self.estado == Estado.ESTABLISHED: pass
-        elif self.estado == Estado.FIN_WAIT_1: pass
-        elif self.estado == Estado.FIN_WAIT_2: pass
-        elif self.estado == Estado.CLOSING: pass
-        elif self.estado == Estado.LAST_ACK: pass
+        elif self.estado == Estado.SYN_SENT:
+            if syn_recibido:
+                if ack_recibido:
+                    # SYN_SENT recibe SYN/ACK
+                    self.estado = Estado.ESTABLISHED
+                else:
+                    # SYN_SENT recibe SYN
+                    self.estado = Estado.SYN_RCVD
+        elif self.estado == Estado.SYN_RCVD: 
+            if ack_recibido:
+                # SYN_RCVD recibe ACK
+                self.estado = Estado.ESTABLISHED
+        elif self.estado == Estado.ESTABLISHED:
+            if fin_recibido:
+                # ESTABLISHED recibe FIN
+                self.estado = Estado.LAST_ACK
+        elif self.estado == Estado.FIN_WAIT_1:
+            if ack_recibido:
+                # FIN_WAIT_1 recibe ACK
+                self.estado = Estado.FIN_WAIT_2
+            elif fin_recibido:
+                # FIN_WAIT_1 recibe FIN
+                self.estado = Estado.CLOSING
+        elif self.estado == Estado.FIN_WAIT_2:
+            if fin_recibido:
+                # FIN_WAIT_2 recibe FIN
+                self.estado = Estado.CLOSED
+        elif self.estado == Estado.CLOSING:
+            if ack_recibido:
+                # CLOSING recibe ACK
+                self.estado = Estado.CLOSED
+        elif self.estado == Estado.LAST_ACK:
+            if ack_recibido:
+                # LAST_ACK recibe ACK
+                self.estado = Estado.CLOSED
+
 
     # Hace que este nodo se conecte con el nodo 'destinatario'
     # Esto significa pasar de estado CLOSED a ESTABLISHED,
     # pasando por todos los pasos del protocolo TCP.
     def handshake(self, destinatario):
-        self.estado = Estado.CLOSED
         self.send(destinatario, [Flag.SYN])
+        self.estado = Estado.SYN_SENT
         destinatario.send(self, [Flag.SYN, Flag.ACK])
         self.send(destinatario, [Flag.ACK])
 
@@ -77,5 +109,8 @@ class Nodo(object):
     # pasando por todos los pasos del protocolo TCP. 
     def close(self, destinatario):
         self.send(destinatario, [Flag.FIN])
-        destinatario.send(self, [Flag.FIN, Flag.ACK])
+        self.estado = Estado.FIN_WAIT_1
+        destinatario.send(self, [Flag.ACK])
+        destinatario.send(self, [Flag.FIN])
+        destinatario.estado = Estado.LAST_ACK
         self.send(destinatario, [Flag.ACK])
