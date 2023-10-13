@@ -51,19 +51,17 @@ class Nodo(object):
     # Esta funcion se ejecuta cuando un nodo recibe un paquete TCP.
     # Dependiendo que flags tenga el paquete, va a hacer una cosa u otra
     def receive(self, emisor, flags):
-        recibiendo_primera_syn = self.estado == Estado.LISTEN and Flag.SYN in flags
-        recibiendo_syn_ack = self.estado == Estado.SYN_SENT and (Flag.SYN in flags and Flag.ACK in flags)
-        recibiendo_primera_fin = self.estado == Estado.ESTABLISHED and Flag.FIN in flags
-        recibiendo_fin_ack = self.estado == Estado.FIN_WAIT_1 and Flag.FIN in flags
-        recibiendo_ultima_ack = self.estado == Estado.
-        if recibiendo_primera_syn:
-            self.estado = Estado.SYN_RCVD
-        elif recibiendo_syn_ack:
-            self.estado = Estado.ESTABLISHED
-        elif recibiendo_primera_fin:
-            self.estado = Estado.CLOSING
-        elif recibiendo_fin_ack:
-            self.estado = Estado.
+        if self.estado == Estado.CLOSED: pass
+        elif self.estado == Estado.LISTEN: 
+            if Flag.SYN in flags:
+                self.estado = Estado.SYN_RCVD
+        elif self.estado == Estado.SYN_SENT: pass
+        elif self.estado == Estado.SYN_RCVD: pass
+        elif self.estado == Estado.ESTABLISHED: pass
+        elif self.estado == Estado.FIN_WAIT_1: pass
+        elif self.estado == Estado.FIN_WAIT_2: pass
+        elif self.estado == Estado.CLOSING: pass
+        elif self.estado == Estado.LAST_ACK: pass
 
     # Hace que este nodo se conecte con el nodo 'destinatario'
     # Esto significa pasar de estado CLOSED a ESTABLISHED,
